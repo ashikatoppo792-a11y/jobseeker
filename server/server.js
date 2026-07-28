@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const { connectDB, memoryStore } = require('./config/db');
+const { seedDatabaseIfEmpty } = require('./config/seedJobs');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
 dotenv.config();
@@ -38,7 +39,7 @@ app.get('/', (req, res) => {
 // Notifications endpoint for logged in user
 app.get('/api/notifications', (req, res) => {
   const userId = req.query.userId || 'u1';
-  const userNotifs = memoryStore.notifications.filter(n => n.userId === userId);
+  const userNotifs = memoryStore.notifications ? memoryStore.notifications.filter(n => n.userId === userId) : [];
   res.json(userNotifs);
 });
 
@@ -47,12 +48,14 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-// Initialize DB Connection and launch server
-connectDB().then(() => {
+// Initialize DB Connection, seed database if empty, and launch server
+connectDB().then(async () => {
+  await seedDatabaseIfEmpty();
+
   app.listen(PORT, () => {
     console.log(`====================================================`);
     console.log(` Local Job Portal API running on http://localhost:${PORT}`);
-    console.log(` MongoDB Mode: ${process.env.MONGODB_URI ? 'Active DB' : 'InMemory Dynamic Fallback'}`);
+    console.log(` MongoDB Mode: ${process.env.MONGODB_URI ? 'Active DB' : 'InMemory / MongoDB Dynamic Sync'}`);
     console.log(`====================================================`);
   });
 });

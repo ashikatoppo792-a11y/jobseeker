@@ -130,7 +130,9 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
             justifyContent: 'space-between',
             marginBottom: '2rem',
             paddingBottom: '1.25rem',
-            borderBottom: '1px solid var(--border-color)'
+            borderBottom: '1px solid var(--border-color)',
+            flexWrap: 'wrap',
+            gap: '1rem'
           }}>
             <button
               onClick={() => {
@@ -138,10 +140,22 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                 onApply(job);
               }}
               className="btn btn-primary btn-lg"
-              style={{ flex: 1, maxWidth: '280px' }}
+              style={{ flex: 1, minWidth: '220px' }}
             >
-              Apply for this Job
+              Apply Online
             </button>
+
+            {job.applyLink && (
+              <a
+                href={job.applyLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary btn-lg"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                Apply Link <ExternalLink size={16} />
+              </a>
+            )}
 
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button

@@ -3,14 +3,16 @@ const mongoose = require('mongoose');
 const jobSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employer', required: true },
+    employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employer' },
     companyName: { type: String, required: true },
     companyLogo: { type: String, default: '' },
     category: { type: String, required: true },
     location: { type: String, required: true },
-    state: { type: String, default: 'Karnataka' },
+    state: { type: String, default: 'Pan India' },
+    district: { type: String, default: '' },
+    city: { type: String, default: '' },
     workMode: { type: String, enum: ['Remote', 'On-site', 'Hybrid'], default: 'On-site' },
-    jobType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Internship'], default: 'Full-time' },
+    jobType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'], default: 'Full-time' },
     experienceLevel: { type: String, enum: ['Entry Level', 'Mid Level', 'Senior Level', 'Executive'], default: 'Mid Level' },
     minSalary: { type: Number, default: 0 },
     maxSalary: { type: Number, default: 0 },
@@ -25,6 +27,7 @@ const jobSchema = new mongoose.Schema(
     requirements: [{ type: String }],
     benefits: [{ type: String }],
     skills: [{ type: String }],
+    applyLink: { type: String, default: '' },
     expiresAt: { type: Date }
   },
   { timestamps: true }

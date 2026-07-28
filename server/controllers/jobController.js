@@ -1,4 +1,10 @@
+const Job = require('../models/Job');
+const mongoose = require('mongoose');
 const { memoryStore } = require('../config/db');
+const { seedDatabaseIfEmpty } = require('../config/seedJobs');
+
+// Helper to check if MongoDB connection is active
+const isDBConnected = () => mongoose.connection.readyState === 1;
 
 // @desc Get all jobs with filtering, sorting, searching & pagination
 // @route GET /api/jobs
@@ -8,6 +14,7 @@ const getJobs = async (req, res) => {
       keyword,
       location,
       state,
+      district,
       category,
       jobType,
       workMode,
@@ -18,9 +25,90 @@ const getJobs = async (req, res) => {
       limit = 10
     } = req.query;
 
+    // Ensure seed data exists
+    await seedDatabaseIfEmpty();
+
+    if (isDBConnected()) {
+      // MongoDB Mode
+      const query = { status: 'Active' };
+
+      if (keyword) {
+        const regex = new RegExp(keyword, 'i');
+        query.$or = [
+          { title: regex },
+          { companyName: regex },
+          { description: regex },
+          { skills: { $in: [regex] } }
+        ];
+      }
+
+      if (location && location !== 'Pan India' && location !== 'All Locations') {
+        const locRegex = new RegExp(location, 'i');
+        if (!query.$or) {
+          query.$or = [
+            { location: locRegex },
+            { state: locRegex },
+            { district: locRegex },
+            { city: locRegex }
+          ];
+        }
+      }
+
+      if (state && state !== 'All States & UTs' && state !== 'Pan India (Remote)') {
+        query.state = new RegExp(state, 'i');
+      }
+
+      if (district) {
+        query.district = new RegExp(district, 'i');
+      }
+
+      if (category && category !== 'All Categories') {
+        query.category = new RegExp(category, 'i');
+      }
+
+      if (jobType) {
+        query.jobType = jobType;
+      }
+
+      if (workMode) {
+        query.workMode = workMode;
+      }
+
+      if (experienceLevel) {
+        query.experienceLevel = experienceLevel;
+      }
+
+      if (minSalary && Number(minSalary) > 0) {
+        query.maxSalary = { $gte: Number(minSalary) };
+      }
+
+      let sortOptions = { createdAt: -1 };
+      if (sort === 'salary-high') {
+        sortOptions = { maxSalary: -1 };
+      } else if (sort === 'salary-low') {
+        sortOptions = { minSalary: 1 };
+      } else if (sort === 'popular') {
+        sortOptions = { viewsCount: -1 };
+      }
+
+      const totalCount = await Job.countDocuments(query);
+      const jobs = await Job.find(query)
+        .sort(sortOptions)
+        .skip((Number(page) - 1) * Number(limit))
+        .limit(Number(limit));
+
+      return res.json({
+        jobs,
+        totalCount,
+        page: Number(page),
+        totalPages: Math.ceil(totalCount / limit) || 1
+      });
+    }
+
+    // In-Memory Fallback Mode
     let filteredJobs = [...memoryStore.jobs].filter(j => j.status === 'Active');
 
-    // Keyword filter (title, skills, description, company)
+    // Keyword filter
     if (keyword) {
       const q = keyword.toLowerCase();
       filteredJobs = filteredJobs.filter(
@@ -36,15 +124,26 @@ const getJobs = async (req, res) => {
     if (location && location !== 'Pan India' && location !== 'All Locations') {
       const loc = location.toLowerCase();
       filteredJobs = filteredJobs.filter(
-        j => j.location.toLowerCase().includes(loc) || (j.state && j.state.toLowerCase().includes(loc))
+        j =>
+          j.location.toLowerCase().includes(loc) ||
+          (j.state && j.state.toLowerCase().includes(loc)) ||
+          (j.district && j.district.toLowerCase().includes(loc))
       );
     }
 
     // State filter
-    if (state && state !== 'All States & UTs') {
+    if (state && state !== 'All States & UTs' && state !== 'Pan India (Remote)') {
       const st = state.toLowerCase();
       filteredJobs = filteredJobs.filter(
         j => (j.state && j.state.toLowerCase() === st) || j.location.toLowerCase().includes(st)
+      );
+    }
+
+    // District filter
+    if (district) {
+      const dist = district.toLowerCase();
+      filteredJobs = filteredJobs.filter(
+        j => (j.district && j.district.toLowerCase().includes(dist)) || j.location.toLowerCase().includes(dist)
       );
     }
 
@@ -60,7 +159,7 @@ const getJobs = async (req, res) => {
       filteredJobs = filteredJobs.filter(j => j.jobType === jobType);
     }
 
-    // Work mode filter (Remote, On-site, Hybrid)
+    // Work mode filter
     if (workMode) {
       filteredJobs = filteredJobs.filter(j => j.workMode === workMode);
     }
@@ -70,8 +169,8 @@ const getJobs = async (req, res) => {
       filteredJobs = filteredJobs.filter(j => j.experienceLevel === experienceLevel);
     }
 
-    // Min salary filter (in INR / LPA)
-    if (minSalary) {
+    // Min salary filter
+    if (minSalary && Number(minSalary) > 0) {
       filteredJobs = filteredJobs.filter(j => j.maxSalary >= Number(minSalary));
     }
 
@@ -83,7 +182,6 @@ const getJobs = async (req, res) => {
     } else if (sort === 'popular') {
       filteredJobs.sort((a, b) => b.viewsCount - a.viewsCount);
     } else {
-      // Default newest
       filteredJobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
@@ -96,32 +194,33 @@ const getJobs = async (req, res) => {
       jobs: paginatedJobs,
       totalCount,
       page: Number(page),
-      totalPages: Math.ceil(totalCount / limit)
+      totalPages: Math.ceil(totalCount / limit) || 1
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching jobs', error: error.message });
   }
 };
 
-// @desc Get single job details & increment view count
+// @desc Get single job details
 // @route GET /api/jobs/:id
 const getJobById = async (req, res) => {
-  const job = memoryStore.jobs.find(j => j._id === req.params.id);
-  if (!job) {
-    return res.status(404).json({ message: 'Job not found' });
+  try {
+    if (isDBConnected()) {
+      const job = await Job.findById(req.params.id);
+      if (!job) return res.status(404).json({ message: 'Job not found' });
+      job.viewsCount = (job.viewsCount || 0) + 1;
+      await job.save();
+      return res.json(job);
+    }
+
+    const job = memoryStore.jobs.find(j => j._id === req.params.id);
+    if (!job) return res.status(404).json({ message: 'Job not found' });
+    job.viewsCount = (job.viewsCount || 0) + 1;
+
+    res.json(job);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching job details', error: err.message });
   }
-  job.viewsCount = (job.viewsCount || 0) + 1;
-
-  const employer = memoryStore.employers.find(e => e._id === job.employerId) || {
-    companyName: job.companyName,
-    logo: job.companyLogo,
-    rating: 4.8,
-    reviewCount: 10,
-    headquarters: job.location,
-    website: 'https://example.com'
-  };
-
-  res.json({ ...job, employer });
 };
 
 // @desc Create new job (Employer only)
@@ -132,6 +231,8 @@ const createJob = async (req, res) => {
     category,
     location,
     state,
+    district,
+    city,
     workMode,
     jobType,
     experienceLevel,
@@ -143,6 +244,7 @@ const createJob = async (req, res) => {
     requirements,
     benefits,
     skills,
+    applyLink,
     featured
   } = req.body;
 
@@ -150,70 +252,95 @@ const createJob = async (req, res) => {
     return res.status(400).json({ message: 'Title, category, location, and description are required' });
   }
 
-  const employer = memoryStore.employers.find(e => e.userId === req.user._id) || {
-    _id: 'e_custom_' + Date.now(),
-    companyName: req.user.name + ' Corp',
-    logo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&auto=format&fit=crop&q=80'
-  };
+  try {
+    const employer = memoryStore.employers.find(e => e.userId === req.user?._id) || {
+      _id: 'e_' + Date.now(),
+      companyName: req.user?.name ? req.user.name + ' Corp' : 'Apex Tech',
+      logo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&auto=format&fit=crop&q=80'
+    };
 
-  const newJob = {
-    _id: 'j_' + Date.now(),
-    title,
-    employerId: employer._id,
-    companyName: employer.companyName,
-    companyLogo: employer.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&auto=format&fit=crop&q=80',
-    category,
-    location,
-    state: state || 'Karnataka',
-    workMode: workMode || 'On-site',
-    jobType: jobType || 'Full-time',
-    experienceLevel: experienceLevel || 'Mid Level',
-    minSalary: Number(minSalary) || 600000,
-    maxSalary: Number(maxSalary) || 1200000,
-    salaryCurrency: 'INR',
-    salaryPeriod: salaryPeriod || 'Yearly',
-    featured: Boolean(featured),
-    status: 'Active',
-    viewsCount: 0,
-    applicantsCount: 0,
-    description,
-    responsibilities: Array.isArray(responsibilities) ? responsibilities : (responsibilities ? responsibilities.split('\n') : []),
-    requirements: Array.isArray(requirements) ? requirements : (requirements ? requirements.split('\n') : []),
-    benefits: Array.isArray(benefits) ? benefits : (benefits ? benefits.split('\n') : []),
-    skills: Array.isArray(skills) ? skills : (skills ? skills.split(',').map(s => s.trim()) : []),
-    createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-  };
+    const jobData = {
+      title,
+      employerId: employer._id,
+      companyName: employer.companyName,
+      companyLogo: employer.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&auto=format&fit=crop&q=80',
+      category,
+      location,
+      state: state || 'Pan India',
+      district: district || '',
+      city: city || '',
+      workMode: workMode || 'On-site',
+      jobType: jobType || 'Full-time',
+      experienceLevel: experienceLevel || 'Mid Level',
+      minSalary: Number(minSalary) || 600000,
+      maxSalary: Number(maxSalary) || 1200000,
+      salaryCurrency: 'INR',
+      salaryPeriod: salaryPeriod || 'Yearly',
+      featured: Boolean(featured),
+      status: 'Active',
+      viewsCount: 0,
+      applicantsCount: 0,
+      description,
+      responsibilities: Array.isArray(responsibilities) ? responsibilities : (responsibilities ? responsibilities.split('\n') : []),
+      requirements: Array.isArray(requirements) ? requirements : (requirements ? requirements.split('\n') : []),
+      benefits: Array.isArray(benefits) ? benefits : (benefits ? benefits.split('\n') : []),
+      skills: Array.isArray(skills) ? skills : (skills ? skills.split(',').map(s => s.trim()) : []),
+      applyLink: applyLink || '',
+      createdAt: new Date()
+    };
 
-  memoryStore.jobs.unshift(newJob);
-  res.status(201).json(newJob);
+    if (isDBConnected()) {
+      const newJob = await Job.create(jobData);
+      return res.status(201).json(newJob);
+    }
+
+    jobData._id = 'j_' + Date.now();
+    memoryStore.jobs.unshift(jobData);
+    res.status(201).json(jobData);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to create job', error: err.message });
+  }
 };
 
 // @desc Update job post
 // @route PUT /api/jobs/:id
 const updateJob = async (req, res) => {
-  const index = memoryStore.jobs.findIndex(j => j._id === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ message: 'Job not found' });
+  try {
+    if (isDBConnected()) {
+      const job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      if (!job) return res.status(404).json({ message: 'Job not found' });
+      return res.json(job);
+    }
+
+    const index = memoryStore.jobs.findIndex(j => j._id === req.params.id);
+    if (index === -1) return res.status(404).json({ message: 'Job not found' });
+
+    const updatedJob = { ...memoryStore.jobs[index], ...req.body };
+    memoryStore.jobs[index] = updatedJob;
+    res.json(updatedJob);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update job', error: err.message });
   }
-
-  const existingJob = memoryStore.jobs[index];
-  const updatedJob = { ...existingJob, ...req.body };
-  memoryStore.jobs[index] = updatedJob;
-
-  res.json(updatedJob);
 };
 
 // @desc Delete job post
 // @route DELETE /api/jobs/:id
 const deleteJob = async (req, res) => {
-  const index = memoryStore.jobs.findIndex(j => j._id === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ message: 'Job not found' });
-  }
+  try {
+    if (isDBConnected()) {
+      const job = await Job.findByIdAndDelete(req.params.id);
+      if (!job) return res.status(404).json({ message: 'Job not found' });
+      return res.json({ message: 'Job deleted successfully' });
+    }
 
-  memoryStore.jobs.splice(index, 1);
-  res.json({ message: 'Job deleted successfully' });
+    const index = memoryStore.jobs.findIndex(j => j._id === req.params.id);
+    if (index === -1) return res.status(404).json({ message: 'Job not found' });
+
+    memoryStore.jobs.splice(index, 1);
+    res.json({ message: 'Job deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete job', error: err.message });
+  }
 };
 
 // @desc Save / Bookmark job
