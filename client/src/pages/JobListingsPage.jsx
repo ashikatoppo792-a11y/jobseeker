@@ -67,7 +67,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
       if (minSalary > 0) params.append('minSalary', minSalary);
       if (sort) params.append('sort', sort);
       params.append('page', page);
-      params.append('limit', 8);
+      params.append('limit', 12);
 
       const data = await apiFetch(`/jobs?${params.toString()}`);
       let fetchedJobs = data.jobs || [];
@@ -80,12 +80,8 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
       }
 
       setJobs(fetchedJobs);
-      setTotalCount(fetchedJobs.length);
+      setTotalCount(data.totalCount || fetchedJobs.length);
       setTotalPages(data.totalPages || 1);
-
-      if (fetchedJobs.length > 0 && !selectedJob) {
-        setSelectedJob(fetchedJobs[0]);
-      }
     } catch (err) {
       console.error('Error fetching jobs list:', err);
     } finally {
@@ -156,7 +152,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
               style={{ flex: '1 1 180px', padding: '0.6rem 0.85rem', fontSize: '0.9rem' }}
             >
               <option value="All Categories">All Categories</option>
-              {categoriesList.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+              {categoriesList.map(c => <option key={c._id || c.name} value={c.name}>{c.name}</option>)}
             </select>
 
             <button onClick={fetchJobs} className="btn btn-primary" style={{ padding: '0.6rem 1.25rem' }}>
@@ -344,7 +340,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {jobs.map((job) => (
                   <JobCard
-                    key={job._id}
+                    key={job._id || job.id}
                     job={job}
                     isSelected={selectedJob?._id === job._id}
                     onSelect={(j) => setSelectedJob(j)}
