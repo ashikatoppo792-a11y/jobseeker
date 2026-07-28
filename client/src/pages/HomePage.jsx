@@ -3,6 +3,7 @@ import HeroSearch from '../components/HeroSearch';
 import JobCard from '../components/JobCard';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Briefcase,
   Sparkles,
@@ -18,6 +19,7 @@ import {
 
 const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [featuredJobs, setFeaturedJobs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [aiRecommendations, setAiRecommendations] = useState([]);
@@ -69,15 +71,15 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
           }}>
             <div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>2,450+</div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Active Local Jobs</div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{t('activeJobs')}</div>
             </div>
             <div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>480+</div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Verified Local Employers</div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{t('verifiedEmployers')}</div>
             </div>
             <div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>12,800+</div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Successful Hires</div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{t('successfulHires')}</div>
             </div>
             <div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>98%</div>
@@ -116,7 +118,7 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
             }}>
               {aiRecommendations.slice(0, 3).map((job) => (
                 <JobCard
-                  key={job._id}
+                  key={job._id || job.id}
                   job={job}
                   onSelect={onSelectJob}
                   onApply={onApplyJob}
@@ -135,7 +137,7 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
               Explore By Popular Category
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-              Discover career opportunities tailored across Texas' top local industries
+              Discover career opportunities across India's top industries
             </p>
           </div>
 
@@ -146,7 +148,7 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
           }}>
             {categories.map((cat) => (
               <div
-                key={cat._id}
+                key={cat._id || cat.id || cat.name}
                 className="card card-hover"
                 style={{
                   padding: '1.5rem',
@@ -194,7 +196,7 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
             marginBottom: '2rem'
           }}>
             <div>
-              <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>Featured Local Openings</h2>
+              <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>{t('featuredOpenings')}</h2>
               <p style={{ color: 'var(--text-muted)' }}>Recent high-priority jobs from verified employers</p>
             </div>
             <button
@@ -212,7 +214,7 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
           }}>
             {featuredJobs.map((job) => (
               <JobCard
-                key={job._id}
+                key={job._id || job.id}
                 job={job}
                 onSelect={onSelectJob}
                 onApply={onApplyJob}
@@ -244,10 +246,10 @@ const HomePage = ({ onNavigate, onSelectJob, onApplyJob }) => {
                 <Building2 size={14} /> For Local Employers
               </div>
               <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#FFFFFF', marginBottom: '1rem', lineHeight: 1.2 }}>
-                Hiring Local Talent in Texas? Post Your Job Opening Today.
+                Hiring Local Talent in India? Post Your Job Opening Today.
               </h2>
               <p style={{ color: '#94A3B8', fontSize: '1.05rem', lineHeight: 1.6 }}>
-                Connect directly with qualified local professionals, review candidate resumes, and manage applicants with our intuitive ATS platform.
+                Connect directly with qualified local professionals across all Indian states and districts, review candidate resumes, and manage applicants with our intuitive ATS platform.
               </p>
             </div>
 
