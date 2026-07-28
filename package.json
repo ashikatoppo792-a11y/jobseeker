@@ -1,0 +1,16 @@
+{
+  "name": "local-job-portal",
+  "version": "1.0.0",
+  "description": "Modern full-stack Local Job Portal inspired by Indeed",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "client": "npm --prefix client run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "npm --prefix client run build"
+  },
+  "keywords": ["job-portal", "react", "node", "express", "mongodb", "indeed-clone"],
+  "author": "Antigravity",
+  "license": "ISC"
+}
