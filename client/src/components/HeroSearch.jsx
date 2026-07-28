@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
 import StateDistrictModal from './StateDistrictModal';
 import { useLanguage } from '../context/LanguageContext';
-import { Search, MapPin, Briefcase, Sparkles, TrendingUp, Compass, Globe } from 'lucide-react';
+import { getCurrentLocation } from '../utils/geolocation';
+import { Search, MapPin, Briefcase, Sparkles, TrendingUp, Compass, Globe, Crosshair, Loader2 } from 'lucide-react';
 
 const HeroSearch = ({ onSearch }) => {
   const { t } = useLanguage();
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('Odisha');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
+  const [locMsg, setLocMsg] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch({ keyword, location });
   };
 
-  const handlePopularClick = (tag) => {
-    setKeyword(tag);
-    onSearch({ keyword: tag, location });
+  const handleDetectLocation = async () => {
+    setLocLoading(true);
+    setLocMsg('');
+    try {
+      const locData = await getCurrentLocation();
+      setLocation(locData.locationString);
+      setLocMsg(`📍 Located: ${locData.locationString}`);
+      onSearch({ keyword, location: locData.locationString });
+    } catch (err) {
+      setLocMsg(err.message || 'Location access denied');
+    } finally {
+      setLocLoading(false);
+    }
   };
 
   const handleSelectLocation = ({ location: selectedLoc }) => {
@@ -93,7 +106,7 @@ const HeroSearch = ({ onSearch }) => {
 
         {/* Search Box Container */}
         <form onSubmit={handleSubmit} style={{
-          maxWidth: '960px',
+          maxWidth: '980px',
           margin: '0 auto',
           backgroundColor: 'var(--bg-card)',
           padding: '0.65rem',
@@ -107,7 +120,7 @@ const HeroSearch = ({ onSearch }) => {
         }}>
           {/* Keyword Input */}
           <div style={{
-            flex: '1 1 240px',
+            flex: '1 1 230px',
             display: 'flex',
             alignItems: 'center',
             gap: '0.75rem',
@@ -132,12 +145,12 @@ const HeroSearch = ({ onSearch }) => {
             />
           </div>
 
-          {/* Location Input & State/District Button */}
+          {/* Location Input & Current Location + State/District Buttons */}
           <div style={{
-            flex: '1 1 240px',
+            flex: '1 1 290px',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.4rem',
             padding: '0.35rem 0.5rem'
           }}>
             <MapPin size={20} color="var(--primary)" />
@@ -153,15 +166,30 @@ const HeroSearch = ({ onSearch }) => {
                 background: 'transparent',
                 fontSize: '0.95rem',
                 color: 'var(--text-main)',
-                fontWeight: 600
+                fontWeight: 600,
+                minWidth: '110px'
               }}
             />
+
+            {/* Current Location GPS Button */}
+            <button
+              type="button"
+              onClick={handleDetectLocation}
+              disabled={locLoading}
+              className="btn btn-outline btn-sm"
+              style={{ padding: '0.45rem 0.75rem', whiteSpace: 'nowrap', fontSize: '0.8rem', fontWeight: 700 }}
+              title="Detect My Current Location"
+            >
+              {locLoading ? <Loader2 size={14} className="spin" /> : <Crosshair size={14} color="var(--primary)" />}
+              <span>{locLoading ? 'Detecting...' : 'Near Me'}</span>
+            </button>
+
             {/* Interactive State & District Explorer Button */}
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
               className="btn btn-secondary btn-sm"
-              style={{ padding: '0.45rem 0.85rem', whiteSpace: 'nowrap', fontSize: '0.8rem', fontWeight: 700 }}
+              style={{ padding: '0.45rem 0.75rem', whiteSpace: 'nowrap', fontSize: '0.8rem', fontWeight: 700 }}
             >
               <Compass size={14} /> {t('stateDistrictBtn')}
             </button>
@@ -172,7 +200,7 @@ const HeroSearch = ({ onSearch }) => {
             type="submit"
             className="btn btn-primary btn-lg"
             style={{
-              padding: '0.85rem 2rem',
+              padding: '0.85rem 1.75rem',
               borderRadius: 'var(--radius-md)',
               fontWeight: 700,
               fontSize: '1rem',
@@ -183,7 +211,14 @@ const HeroSearch = ({ onSearch }) => {
           </button>
         </form>
 
-        {/* Odisha 30 Districts & Pan India Quick Filter Buttons */}
+        {/* Location Status Message */}
+        {locMsg && (
+          <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>
+            {locMsg}
+          </div>
+        )}
+
+        {/* Quick Location Shortcuts */}
         <div style={{
           display: 'flex',
           alignItems: 'center',

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { STATE_DISTRICT_DATA, ALL_INDIAN_STATES } from '../utils/indiaDistricts';
-import { X, MapPin, Search, ChevronRight, Check, Compass, Building2 } from 'lucide-react';
+import { getCurrentLocation } from '../utils/geolocation';
+import { X, MapPin, Search, ChevronRight, Check, Compass, Building2, Crosshair, Loader2 } from 'lucide-react';
 
 const StateDistrictModal = ({ isOpen, onClose, onSelectLocation }) => {
   if (!isOpen) return null;
 
   const [activeState, setActiveState] = useState('Karnataka');
   const [searchTerm, setSearchTerm] = useState('');
+  const [locLoading, setLocLoading] = useState(false);
 
   const states = Object.keys(STATE_DISTRICT_DATA);
   const districts = STATE_DISTRICT_DATA[activeState] || [];
@@ -34,11 +36,24 @@ const StateDistrictModal = ({ isOpen, onClose, onSelectLocation }) => {
     onClose();
   };
 
+  const handleUseCurrentLocation = async () => {
+    setLocLoading(true);
+    try {
+      const locData = await getCurrentLocation();
+      onSelectLocation({ state: locData.state, district: locData.city, location: locData.locationString });
+      onClose();
+    } catch (err) {
+      alert(err.message || 'Unable to detect location. Please grant location permissions.');
+    } finally {
+      setLocLoading(false);
+    }
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal-card"
-        style={{ maxWidth: '820px', padding: '0', overflow: 'hidden' }}
+        style={{ maxWidth: '840px', padding: '0', overflow: 'hidden' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
@@ -59,17 +74,29 @@ const StateDistrictModal = ({ isOpen, onClose, onSelectLocation }) => {
             </h2>
           </div>
 
-          <button
-            onClick={onClose}
-            style={{
-              padding: '0.4rem',
-              borderRadius: '50%',
-              backgroundColor: 'var(--bg-card)',
-              border: '1px solid var(--border-color)'
-            }}
-          >
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              onClick={handleUseCurrentLocation}
+              disabled={locLoading}
+              className="btn btn-primary btn-sm"
+              style={{ fontSize: '0.825rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              {locLoading ? <Loader2 size={14} className="spin" /> : <Crosshair size={14} />}
+              <span>{locLoading ? 'Detecting...' : 'Use My Current Location'}</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              style={{
+                padding: '0.4rem',
+                borderRadius: '50%',
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-color)'
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Modal Search Bar */}
@@ -86,7 +113,7 @@ const StateDistrictModal = ({ isOpen, onClose, onSelectLocation }) => {
             <Search size={18} color="var(--primary)" />
             <input
               type="text"
-              placeholder="Search any Indian State or District (e.g. Pune, Mysuru, Noida, Bengaluru)..."
+              placeholder="Search any Indian State or District (e.g. Pune, Mysuru, Noida, Bhubaneswar)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
