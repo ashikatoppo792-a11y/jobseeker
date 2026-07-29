@@ -8,7 +8,9 @@ import {
   Bookmark,
   Sparkles,
   Eye,
-  Clock
+  Clock,
+  Landmark,
+  Calendar
 } from 'lucide-react';
 
 export const formatIndianSalary = (job) => {
@@ -31,6 +33,8 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
   const { savedJobs, toggleSaveJob } = useAuth();
   const isSaved = savedJobs.includes(job._id);
 
+  const isGovt = job.sector === 'Government';
+
   const getWorkModeColor = (mode) => {
     switch (mode) {
       case 'Remote': return 'badge-purple';
@@ -44,7 +48,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
       className="card card-hover"
       style={{
         padding: '1.25rem 1.5rem',
-        borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
+        borderColor: isSelected ? 'var(--primary)' : (isGovt ? '#10B981' : 'var(--border-color)'),
         backgroundColor: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
         cursor: 'pointer',
         position: 'relative'
@@ -63,16 +67,25 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
               height: '52px',
               borderRadius: '12px',
               objectFit: 'cover',
-              border: '1px solid var(--border-color)',
+              border: `1px solid ${isGovt ? '#10B981' : 'var(--border-color)'}`,
               boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
             }}
           />
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isGovt ? '#10B981' : 'var(--text-muted)' }}>
                 {job.companyName}
               </span>
+
+              {/* Govt vs Private Sector Badge */}
+              <span
+                className={`badge ${isGovt ? 'badge-green' : 'badge-blue'}`}
+                style={{ fontSize: '0.7rem', fontWeight: 800 }}
+              >
+                {isGovt ? <><Landmark size={12} /> Govt / Sarkari</> : <><Building2 size={12} /> Private</>}
+              </span>
+
               {job.featured && (
                 <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>
                   <Sparkles size={12} /> Featured
@@ -84,7 +97,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
               fontSize: '1.15rem',
               fontWeight: 700,
               color: 'var(--text-main)',
-              margin: '0.15rem 0 0.35rem 0',
+              margin: '0.2rem 0 0.35rem 0',
               lineHeight: 1.3
             }}>
               {job.title}
@@ -130,9 +143,16 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
         <span className="badge badge-gray">
           {job.jobType}
         </span>
-        {job.matchScore && (
+
+        {job.officialAdvtNo && (
           <span className="badge badge-purple" style={{ fontWeight: 700 }}>
-            <Sparkles size={13} /> {job.matchScore}% Match
+            {job.officialAdvtNo}
+          </span>
+        )}
+
+        {job.lastDateToApply && (
+          <span className="badge badge-amber" style={{ fontWeight: 700 }}>
+            <Calendar size={12} /> Apply by {new Date(job.lastDateToApply).toLocaleDateString()}
           </span>
         )}
       </div>
@@ -180,9 +200,9 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
               e.stopPropagation();
               onApply(job);
             }}
-            className="btn btn-primary btn-sm"
+            className={`btn ${isGovt ? 'btn-secondary' : 'btn-primary'} btn-sm`}
           >
-            Apply Now
+            {isGovt ? 'Official Apply' : 'Apply Now'}
           </button>
         </div>
       </div>

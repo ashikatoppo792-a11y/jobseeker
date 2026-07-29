@@ -16,6 +16,7 @@ const getJobs = async (req, res) => {
       state,
       district,
       category,
+      sector,
       jobType,
       workMode,
       experienceLevel,
@@ -38,6 +39,8 @@ const getJobs = async (req, res) => {
           { title: regex },
           { companyName: regex },
           { description: regex },
+          { govtDepartment: regex },
+          { officialAdvtNo: regex },
           { skills: { $in: [regex] } }
         ];
       }
@@ -64,6 +67,10 @@ const getJobs = async (req, res) => {
 
       if (category && category !== 'All Categories') {
         query.category = new RegExp(category, 'i');
+      }
+
+      if (sector && sector !== 'All') {
+        query.sector = sector;
       }
 
       if (jobType) {
@@ -116,6 +123,8 @@ const getJobs = async (req, res) => {
           j.title.toLowerCase().includes(q) ||
           j.companyName.toLowerCase().includes(q) ||
           j.description.toLowerCase().includes(q) ||
+          (j.govtDepartment && j.govtDepartment.toLowerCase().includes(q)) ||
+          (j.officialAdvtNo && j.officialAdvtNo.toLowerCase().includes(q)) ||
           (j.skills && j.skills.some(s => s.toLowerCase().includes(q)))
       );
     }
@@ -152,6 +161,11 @@ const getJobs = async (req, res) => {
       filteredJobs = filteredJobs.filter(
         j => j.category.toLowerCase() === category.toLowerCase()
       );
+    }
+
+    // Sector filter (Private vs Government)
+    if (sector && sector !== 'All') {
+      filteredJobs = filteredJobs.filter(j => j.sector === sector);
     }
 
     // Job type filter
@@ -229,6 +243,9 @@ const createJob = async (req, res) => {
   const {
     title,
     category,
+    sector,
+    govtDepartment,
+    officialAdvtNo,
     location,
     state,
     district,
@@ -245,6 +262,7 @@ const createJob = async (req, res) => {
     benefits,
     skills,
     applyLink,
+    lastDateToApply,
     featured
   } = req.body;
 
@@ -264,6 +282,9 @@ const createJob = async (req, res) => {
       employerId: employer._id,
       companyName: employer.companyName,
       companyLogo: employer.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&auto=format&fit=crop&q=80',
+      sector: sector || 'Private',
+      govtDepartment: govtDepartment || '',
+      officialAdvtNo: officialAdvtNo || '',
       category,
       location,
       state: state || 'Pan India',
@@ -286,6 +307,7 @@ const createJob = async (req, res) => {
       benefits: Array.isArray(benefits) ? benefits : (benefits ? benefits.split('\n') : []),
       skills: Array.isArray(skills) ? skills : (skills ? skills.split(',').map(s => s.trim()) : []),
       applyLink: applyLink || '',
+      lastDateToApply: lastDateToApply ? new Date(lastDateToApply) : undefined,
       createdAt: new Date()
     };
 

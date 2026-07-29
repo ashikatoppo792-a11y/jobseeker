@@ -14,7 +14,10 @@ import {
   Clock,
   Star,
   ExternalLink,
-  Award
+  Award,
+  Landmark,
+  Calendar,
+  FileText
 } from 'lucide-react';
 
 const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
@@ -22,12 +25,13 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
   if (!job) return null;
 
   const isSaved = savedJobs.includes(job._id);
+  const isGovt = job.sector === 'Government';
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
         title: job.title,
-        text: `Check out this job opening for ${job.title} at ${job.companyName}`,
+        text: `Check out this ${isGovt ? 'Government' : 'Private'} job opening for ${job.title} at ${job.companyName}`,
         url: window.location.href
       }).catch(() => {});
     } else {
@@ -45,7 +49,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
       >
         {/* Banner Header */}
         <div style={{
-          backgroundColor: 'var(--primary-light)',
+          backgroundColor: isGovt ? 'rgba(16, 185, 129, 0.1)' : 'var(--primary-light)',
           padding: '2rem 2rem 1.5rem 2rem',
           borderBottom: '1px solid var(--border-color)',
           position: 'relative'
@@ -79,7 +83,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                 height: '64px',
                 borderRadius: '16px',
                 objectFit: 'cover',
-                border: '1px solid var(--border-color)',
+                border: `1px solid ${isGovt ? '#10B981' : 'var(--border-color)'}`,
                 boxShadow: 'var(--shadow-md)'
               }}
             />
@@ -93,7 +97,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                   }}
                   style={{
                     fontWeight: 700,
-                    color: 'var(--primary)',
+                    color: isGovt ? '#10B981' : 'var(--primary)',
                     fontSize: '0.95rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -103,12 +107,12 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                 >
                   {job.companyName} <ExternalLink size={14} />
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.85rem', color: '#F59E0B', fontWeight: 700 }}>
-                  <Star size={14} fill="#F59E0B" /> 4.8
+                <span className={`badge ${isGovt ? 'badge-green' : 'badge-blue'}`} style={{ fontWeight: 800 }}>
+                  {isGovt ? <><Landmark size={13} /> Govt Sector</> : <><Building2 size={13} /> Private Sector</>}
                 </span>
               </div>
 
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0.25rem 0 0.75rem 0', color: 'var(--text-main)' }}>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0.35rem 0 0.75rem 0', color: 'var(--text-main)' }}>
                 {job.title}
               </h2>
 
@@ -116,6 +120,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                 <span className="badge badge-blue"><MapPin size={13} /> {job.location}</span>
                 <span className="badge badge-green"><IndianRupee size={13} /> {formatIndianSalary(job)}</span>
                 <span className="badge badge-purple"><Briefcase size={13} /> {job.jobType} ({job.workMode})</span>
+                {job.officialAdvtNo && <span className="badge badge-amber"><FileText size={13} /> {job.officialAdvtNo}</span>}
               </div>
             </div>
           </div>
@@ -139,10 +144,10 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                 onClose();
                 onApply(job);
               }}
-              className="btn btn-primary btn-lg"
+              className={`btn ${isGovt ? 'btn-secondary' : 'btn-primary'} btn-lg`}
               style={{ flex: 1, minWidth: '220px' }}
             >
-              Apply Online
+              {isGovt ? 'Submit Application' : 'Apply Online'}
             </button>
 
             {job.applyLink && (
@@ -150,10 +155,10 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
                 href={job.applyLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-secondary btn-lg"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                className="btn btn-outline btn-lg"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isGovt ? '#10B981' : 'var(--primary)' }}
               >
-                Apply Link <ExternalLink size={16} />
+                Official Portal <ExternalLink size={16} />
               </a>
             )}
 
@@ -182,26 +187,30 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
             marginBottom: '2rem'
           }}>
             <div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Experience Level</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{job.experienceLevel || 'Mid Level'}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Job Sector</div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isGovt ? '#10B981' : 'var(--primary)' }}>
+                {job.sector === 'Government' ? '🏛️ Government (Sarkari)' : '🏢 Private Enterprise'}
+              </div>
             </div>
             <div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Job Category</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{job.category}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Experience / Eligibility</div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{job.experienceLevel || 'Freshers Eligible'}</div>
             </div>
             <div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Date Posted</div>
               <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{new Date(job.createdAt).toLocaleDateString()}</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Applicants</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{job.applicantsCount || 0} applicants</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{isGovt ? 'Apply Deadline' : 'Applicants'}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isGovt ? '#F59E0B' : 'var(--text-main)' }}>
+                {job.lastDateToApply ? new Date(job.lastDateToApply).toLocaleDateString() : `${job.applicantsCount || 0} applicants`}
+              </div>
             </div>
           </div>
 
           {/* Detailed Description */}
           <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Full Job Description</h3>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Full Notification & Description</h3>
             <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, fontSize: '0.975rem' }}>
               {job.description}
             </p>
@@ -210,11 +219,11 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
           {/* Responsibilities */}
           {job.responsibilities && job.responsibilities.length > 0 && (
             <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Key Responsibilities</h3>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Key Responsibilities & Duties</h3>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 {job.responsibilities.map((resp, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                    <CheckCircle size={18} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <CheckCircle size={18} color={isGovt ? '#10B981' : 'var(--primary)'} style={{ flexShrink: 0, marginTop: '2px' }} />
                     <span>{resp}</span>
                   </li>
                 ))}
@@ -225,7 +234,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
           {/* Requirements */}
           {job.requirements && job.requirements.length > 0 && (
             <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Requirements & Qualifications</h3>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Educational Qualifications & Age Limit</h3>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 {job.requirements.map((req, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', fontSize: '0.95rem', color: 'var(--text-main)' }}>
@@ -240,7 +249,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
           {/* Benefits */}
           {job.benefits && job.benefits.length > 0 && (
             <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Perks & Benefits</h3>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Pay Level, Allowances & Benefits</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {job.benefits.map((benefit, i) => (
                   <span key={i} className="badge badge-green" style={{ padding: '0.4rem 0.85rem', fontSize: '0.875rem' }}>
@@ -254,7 +263,7 @@ const JobDetailsModal = ({ job, onClose, onApply, onOpenCompanyProfile }) => {
           {/* Required Skills */}
           {job.skills && job.skills.length > 0 && (
             <div>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Required Skills</h3>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.85rem' }}>Skills & Exam Subjects</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {job.skills.map((skill, i) => (
                   <span key={i} className="badge badge-blue" style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}>

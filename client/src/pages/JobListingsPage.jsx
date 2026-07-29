@@ -17,7 +17,8 @@ import {
   X,
   RotateCcw,
   Compass,
-  Building2
+  Building2,
+  Landmark
 } from 'lucide-react';
 
 const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile }) => {
@@ -34,6 +35,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
   const [selectedState, setSelectedState] = useState('All States & UTs');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [category, setCategory] = useState(initialFilters.category || 'All Categories');
+  const [sector, setSector] = useState(initialFilters.sector || 'All'); // 'All', 'Government', 'Private'
   const [jobType, setJobType] = useState('');
   const [workMode, setWorkMode] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
@@ -61,6 +63,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
 
       if (selectedState && selectedState !== 'All States & UTs') params.append('state', selectedState);
       if (category && category !== 'All Categories') params.append('category', category);
+      if (sector && sector !== 'All') params.append('sector', sector);
       if (jobType) params.append('jobType', jobType);
       if (workMode) params.append('workMode', workMode);
       if (experienceLevel) params.append('experienceLevel', experienceLevel);
@@ -95,7 +98,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
 
   useEffect(() => {
     fetchJobs();
-  }, [keyword, location, selectedState, selectedDistrict, category, jobType, workMode, experienceLevel, payType, minSalary, sort, page]);
+  }, [keyword, location, selectedState, selectedDistrict, category, sector, jobType, workMode, experienceLevel, payType, minSalary, sort, page]);
 
   const handleResetFilters = () => {
     setKeyword('');
@@ -103,6 +106,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
     setSelectedState('All States & UTs');
     setSelectedDistrict('');
     setCategory('All Categories');
+    setSector('All');
     setJobType('');
     setWorkMode('');
     setExperienceLevel('');
@@ -121,18 +125,76 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
   return (
     <div style={{ padding: '2rem 0' }}>
       <div className="container">
-        {/* Top Search Bar */}
+        {/* Top Search & Sector Toggle Bar */}
         <div className="card" style={{ padding: '1rem 1.25rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
             <div style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-main)', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
               <Search size={18} color="var(--primary)" />
               <input
                 type="text"
-                placeholder="Job title, skill, or keyword"
+                placeholder="Job title, department, advt no, or skill"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.9rem', color: 'var(--text-main)' }}
               />
+            </div>
+
+            {/* Sector Quick Buttons */}
+            <div style={{ display: 'flex', gap: '0.35rem', backgroundColor: 'var(--bg-main)', padding: '0.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+              <button
+                type="button"
+                onClick={() => setSector('All')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.825rem',
+                  fontWeight: 700,
+                  backgroundColor: sector === 'All' ? 'var(--primary)' : 'transparent',
+                  color: sector === 'All' ? '#fff' : 'var(--text-main)',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                All Jobs
+              </button>
+              <button
+                type="button"
+                onClick={() => setSector('Government')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.825rem',
+                  fontWeight: 700,
+                  backgroundColor: sector === 'Government' ? '#10B981' : 'transparent',
+                  color: sector === 'Government' ? '#fff' : 'var(--text-main)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <Landmark size={14} /> Govt (Sarkari)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSector('Private')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.825rem',
+                  fontWeight: 700,
+                  backgroundColor: sector === 'Private' ? 'var(--primary)' : 'transparent',
+                  color: sector === 'Private' ? '#fff' : 'var(--text-main)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <Building2 size={14} /> Private Jobs
+              </button>
             </div>
 
             {/* State & District Explorer Button */}
@@ -149,7 +211,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="input-control"
-              style={{ flex: '1 1 180px', padding: '0.6rem 0.85rem', fontSize: '0.9rem' }}
+              style={{ flex: '1 1 170px', padding: '0.6rem 0.85rem', fontSize: '0.9rem' }}
             >
               <option value="All Categories">All Categories</option>
               {categoriesList.map(c => <option key={c._id || c.name} value={c.name}>{c.name}</option>)}
@@ -161,17 +223,36 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
           </div>
         </div>
 
-        {/* Main Content Layout (Sidebar Filters + Job Cards + Split View) */}
+        {/* Main Content Layout */}
         <div style={{ display: 'grid', gridTemplateColumns: '270px 1fr', gap: '2rem' }} className="jobs-layout">
           {/* Left Sidebar Filters */}
           <aside className="card" style={{ padding: '1.5rem', height: 'fit-content' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <SlidersHorizontal size={18} color="var(--primary)" /> Pay & Filters
+                <SlidersHorizontal size={18} color="var(--primary)" /> Sector & Filters
               </h3>
               <button onClick={handleResetFilters} style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 <RotateCcw size={12} /> Reset
               </button>
+            </div>
+
+            {/* Sector Selector */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>Job Sector</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: sector === 'All' ? 700 : 500 }}>
+                  <input type="radio" name="sectorRadio" checked={sector === 'All'} onChange={() => setSector('All')} />
+                  All Job Sectors
+                </label>
+                <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#10B981', fontWeight: sector === 'Government' ? 700 : 500 }}>
+                  <input type="radio" name="sectorRadio" checked={sector === 'Government'} onChange={() => setSector('Government')} />
+                  🏛️ Govt / Sarkari Naukri & PSUs
+                </label>
+                <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--primary)', fontWeight: sector === 'Private' ? 700 : 500 }}>
+                  <input type="radio" name="sectorRadio" checked={sector === 'Private'} onChange={() => setSector('Private')} />
+                  🏢 Private Company Openings
+                </label>
+              </div>
             </div>
 
             {/* Pay Format Selection (Thousands vs Lakhs) */}
@@ -253,7 +334,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
             <div style={{ marginBottom: '1.5rem' }}>
               <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Employment Type</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {['', 'Full-time', 'Part-time', 'Contract', 'Internship'].map((type) => (
+                {['', 'Full-time', 'Govt Regular', 'Part-time', 'Contract', 'Internship'].map((type) => (
                   <label key={type} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
                     <input
                       type="radio"
@@ -277,6 +358,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
                 style={{ fontSize: '0.875rem' }}
               >
                 <option value="">All Experience Levels</option>
+                <option value="Freshers Eligible">Freshers Eligible</option>
                 <option value="Entry Level">Entry Level</option>
                 <option value="Mid Level">Mid Level</option>
                 <option value="Senior Level">Senior Level</option>
@@ -297,7 +379,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
             }}>
               <div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-                  {totalCount} {totalCount === 1 ? 'Job' : 'Jobs'} Found
+                  {totalCount} {totalCount === 1 ? 'Job' : 'Jobs'} Found {sector !== 'All' ? `(${sector} Sector)` : ''}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   Showing open positions in {selectedDistrict ? `${selectedDistrict}, ${selectedState}` : (selectedState !== 'All States & UTs' ? selectedState : 'Pan India')}
@@ -330,7 +412,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
                 <Search size={44} color="var(--primary)" style={{ opacity: 0.5, marginBottom: '1rem' }} />
                 <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>No Jobs Found</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.925rem', marginBottom: '1.5rem' }}>
-                  Try resetting pay range filters or district filters.
+                  Try resetting sector or district filters.
                 </p>
                 <button onClick={handleResetFilters} className="btn btn-primary">
                   Clear All Filters
