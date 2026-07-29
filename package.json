@@ -10,7 +10,17 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "npm --prefix client run build"
   },
-  "keywords": ["job-portal", "react", "node", "express", "mongodb", "indeed-clone"],
+  "keywords": [
+    "job-portal",
+    "react",
+    "node",
+    "express",
+    "mongodb",
+    "indeed-clone"
+  ],
   "author": "Antigravity",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
 }
