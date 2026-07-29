@@ -1,25 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import StateDistrictModal from './StateDistrictModal';
 import { useLanguage } from '../context/LanguageContext';
 import { getCurrentLocation } from '../utils/geolocation';
-import { Search, MapPin, Briefcase, Sparkles, TrendingUp, Compass, Globe, Crosshair, Loader2 } from 'lucide-react';
+import { Search, MapPin, Briefcase, Sparkles, TrendingUp, Compass, Globe, Crosshair, Loader2, ChevronDown } from 'lucide-react';
+
+const INDEED_POPULAR_LOCATIONS = [
+  { city: 'Bhubaneswar', state: 'Odisha', full: 'Bhubaneswar, Odisha' },
+  { city: 'Kolkata', state: 'West Bengal', full: 'Kolkata, West Bengal' },
+  { city: 'Chennai', state: 'Tamil Nadu', full: 'Chennai, Tamil Nadu' },
+  { city: 'Hyderabad', state: 'Telangana', full: 'Hyderabad, Telangana' },
+  { city: 'Bengaluru', state: 'Karnataka', full: 'Bengaluru, Karnataka' },
+  { city: 'Mumbai', state: 'Maharashtra', full: 'Mumbai, Maharashtra' },
+  { city: 'Cuttack', state: 'Odisha', full: 'Cuttack, Odisha' },
+  { city: 'Rourkela', state: 'Sundargarh, Odisha', full: 'Rourkela, Sundargarh, Odisha' },
+  { city: 'Pune', state: 'Maharashtra', full: 'Pune, Maharashtra' },
+  { city: 'Delhi', state: 'Delhi NCR', full: 'Delhi, Delhi NCR' },
+  { city: 'Noida', state: 'Uttar Pradesh', full: 'Noida, Uttar Pradesh' },
+  { city: 'Pan India', state: 'Remote Jobs', full: 'Pan India (Remote)' }
+];
 
 const HeroSearch = ({ onSearch }) => {
   const { t } = useLanguage();
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('Odisha');
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [locLoading, setLocLoading] = useState(false);
   const [locMsg, setLocMsg] = useState('');
 
+  const dropdownRef = useRef(null);
+
+  // Filter dropdown suggestions based on what user types
+  const filteredSuggestions = INDEED_POPULAR_LOCATIONS.filter(item =>
+    item.full.toLowerCase().includes(location.toLowerCase()) ||
+    item.city.toLowerCase().includes(location.toLowerCase()) ||
+    item.state.toLowerCase().includes(location.toLowerCase())
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowLocationDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    setShowLocationDropdown(false);
     onSearch({ keyword, location });
   };
 
   const handleDetectLocation = async () => {
     setLocLoading(true);
     setLocMsg('');
+    setShowLocationDropdown(false);
     try {
       const locData = await getCurrentLocation();
       setLocation(locData.locationString);
@@ -34,7 +72,14 @@ const HeroSearch = ({ onSearch }) => {
 
   const handleSelectLocation = ({ location: selectedLoc }) => {
     setLocation(selectedLoc);
+    setShowLocationDropdown(false);
     onSearch({ keyword, location: selectedLoc });
+  };
+
+  const handleSelectDropdownItem = (fullLoc) => {
+    setLocation(fullLoc);
+    setShowLocationDropdown(false);
+    onSearch({ keyword, location: fullLoc });
   };
 
   return (
@@ -43,7 +88,7 @@ const HeroSearch = ({ onSearch }) => {
       padding: '4rem 0 3.5rem 0',
       background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.06) 0%, rgba(37, 99, 235, 0.02) 100%)',
       borderBottom: '1px solid var(--border-color)',
-      overflow: 'hidden'
+      overflow: 'visible'
     }}>
       {/* Background Decorative Blur Orbs */}
       <div style={{
@@ -67,7 +112,7 @@ const HeroSearch = ({ onSearch }) => {
         pointerEvents: 'none'
       }} />
 
-      <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+      <div className="container" style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -104,7 +149,7 @@ const HeroSearch = ({ onSearch }) => {
           {t('heroSubtitle')}
         </p>
 
-        {/* Search Box Container */}
+        {/* Indeed-Style Search Box Container */}
         <form onSubmit={handleSubmit} style={{
           maxWidth: '980px',
           margin: '0 auto',
@@ -116,7 +161,8 @@ const HeroSearch = ({ onSearch }) => {
           display: 'flex',
           flexWrap: 'wrap',
           gap: '0.5rem',
-          alignItems: 'center'
+          alignItems: 'center',
+          position: 'relative'
         }}>
           {/* Keyword Input */}
           <div style={{
@@ -145,20 +191,28 @@ const HeroSearch = ({ onSearch }) => {
             />
           </div>
 
-          {/* Location Input & Current Location + State/District Buttons */}
-          <div style={{
-            flex: '1 1 290px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.35rem 0.5rem'
-          }}>
+          {/* Location Input & Indeed-Style Autocomplete Container */}
+          <div
+            ref={dropdownRef}
+            style={{
+              flex: '1 1 310px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.35rem 0.5rem',
+              position: 'relative'
+            }}
+          >
             <MapPin size={20} color="var(--primary)" />
             <input
               type="text"
-              placeholder={t('locationPlaceholder')}
+              placeholder="City, state, district, or 'remote'"
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setShowLocationDropdown(true);
+              }}
+              onFocus={() => setShowLocationDropdown(true)}
               style={{
                 flex: 1,
                 border: 'none',
@@ -193,6 +247,82 @@ const HeroSearch = ({ onSearch }) => {
             >
               <Compass size={14} /> {t('stateDistrictBtn')}
             </button>
+
+            {/* Indeed-Style Floating Location Autocomplete Dropdown */}
+            {showLocationDropdown && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 12px)',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '16px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
+                  maxHeight: '340px',
+                  overflowY: 'auto',
+                  zIndex: 1000,
+                  padding: '0.5rem 0',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                  textTransform: 'uppercase',
+                  borderBottom: '1px solid var(--border-color)',
+                  letterSpacing: '0.05em'
+                }}>
+                  Popular Cities & Locations in India
+                </div>
+
+                {filteredSuggestions.length === 0 ? (
+                  <div style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    No matching location found. Press enter to search "{location}".
+                  </div>
+                ) : (
+                  filteredSuggestions.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleSelectDropdownItem(item.full)}
+                      style={{
+                        padding: '0.75rem 1.1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.85rem',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s ease',
+                        borderBottom: idx < filteredSuggestions.length - 1 ? '1px solid var(--border-color)' : 'none'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-light)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--bg-main)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--primary)',
+                        flexShrink: 0
+                      }}>
+                        <MapPin size={16} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.925rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                          {item.full}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
