@@ -45,12 +45,31 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
   const [minSalary, setMinSalary] = useState(0);
   const [sort, setSort] = useState('newest');
   const [categoriesList, setCategoriesList] = useState([]);
+  const [stateCounts, setStateCounts] = useState({});
 
   // State/District Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const states = Object.keys(STATE_DISTRICT_DATA);
   const districts = selectedState && STATE_DISTRICT_DATA[selectedState] ? STATE_DISTRICT_DATA[selectedState] : [];
+
+  // Popular Indian States list for quick filter pills
+  const POPULAR_STATES_LIST = [
+    { name: 'All States & UTs', icon: '🌐' },
+    { name: 'Odisha', icon: '📍' },
+    { name: 'Karnataka', icon: '📍' },
+    { name: 'Maharashtra', icon: '📍' },
+    { name: 'Delhi NCR', icon: '📍' },
+    { name: 'Tamil Nadu', icon: '📍' },
+    { name: 'Telangana', icon: '📍' },
+    { name: 'West Bengal', icon: '📍' },
+    { name: 'Uttar Pradesh', icon: '📍' },
+    { name: 'Gujarat', icon: '📍' },
+    { name: 'Kerala', icon: '📍' },
+    { name: 'Rajasthan', icon: '📍' },
+    { name: 'Bihar', icon: '📍' },
+    { name: 'Pan India (Remote)', icon: '💻' }
+  ];
 
   // Fetch Jobs function
   const fetchJobs = async () => {
@@ -96,6 +115,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
 
   useEffect(() => {
     apiFetch('/jobs/categories').then(data => setCategoriesList(data || [])).catch(() => {});
+    apiFetch('/jobs/state-counts').then(data => setStateCounts(data || {})).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -222,6 +242,79 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
             <button onClick={fetchJobs} className="btn btn-primary" style={{ padding: '0.6rem 1.25rem' }}>
               Search Jobs
             </button>
+          </div>
+        </div>
+
+        {/* Quick Filter: Browse Jobs by Particular State / UT */}
+        <div className="card" style={{ padding: '1.15rem 1.25rem', marginBottom: '2rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ fontSize: '0.925rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-main)' }}>
+              <Compass size={18} color="var(--primary)" /> <span>Available Jobs by State / UT:</span>
+            </div>
+            {selectedState !== 'All States & UTs' && (
+              <button
+                onClick={() => {
+                  setSelectedState('All States & UTs');
+                  setSelectedDistrict('');
+                  setLocation('');
+                }}
+                className="btn btn-outline btn-sm"
+                style={{ fontSize: '0.785rem', padding: '0.25rem 0.65rem', color: 'var(--primary)', fontWeight: 700 }}
+              >
+                Clear State Filter (Show All States)
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.55rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {POPULAR_STATES_LIST.map((st) => {
+              const isSelected = selectedState === st.name;
+              const count = stateCounts[st.name];
+              return (
+                <button
+                  key={st.name}
+                  onClick={() => {
+                    setSelectedState(st.name);
+                    setSelectedDistrict('');
+                    if (st.name === 'All States & UTs') {
+                      setLocation('');
+                    } else {
+                      setLocation(st.name);
+                    }
+                  }}
+                  style={{
+                    padding: '0.45rem 0.9rem',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.825rem',
+                    fontWeight: isSelected ? 800 : 600,
+                    backgroundColor: isSelected ? 'var(--primary)' : 'var(--bg-main)',
+                    color: isSelected ? '#fff' : 'var(--text-main)',
+                    border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-color)'}`,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    boxShadow: isSelected ? '0 4px 12px rgba(0, 102, 255, 0.3)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <span>{st.icon}</span>
+                  <span>{st.name}</span>
+                  {count !== undefined ? (
+                    <span style={{
+                      fontSize: '0.725rem',
+                      padding: '0.1rem 0.45rem',
+                      borderRadius: '10px',
+                      backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : 'var(--primary-light)',
+                      color: isSelected ? '#fff' : 'var(--primary)',
+                      fontWeight: 800
+                    }}>
+                      {count}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -381,7 +474,9 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
             }}>
               <div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-                  {totalCount} {t('jobsFound', 'Jobs Found')} {sector !== 'All' ? `(${sector})` : ''}
+                  {selectedState !== 'All States & UTs'
+                    ? `${totalCount} Available Jobs in ${selectedState}`
+                    : `${totalCount} ${t('jobsFound', 'Jobs Found')}`} {sector !== 'All' ? `(${sector})` : ''}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   {t('showingOpenPositions', 'Showing open positions in')} {selectedDistrict ? `${selectedDistrict}, ${selectedState}` : (selectedState !== 'All States & UTs' ? selectedState : 'Pan India')}

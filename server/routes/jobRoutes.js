@@ -6,13 +6,15 @@ const {
   createJob,
   updateJob,
   deleteJob,
-  saveJobToggle
+  saveJobToggle,
+  getStateCounts
 } = require('../controllers/jobController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { memoryStore } = require('../config/db');
 
 router.get('/', getJobs);
 router.get('/categories', (req, res) => res.json(memoryStore.categories));
+router.get('/state-counts', getStateCounts);
 router.get('/:id', getJobById);
 router.post('/', protect, authorize('employer', 'admin'), createJob);
 router.put('/:id', protect, authorize('employer', 'admin'), updateJob);

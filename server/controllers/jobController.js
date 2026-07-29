@@ -395,11 +395,42 @@ const saveJobToggle = async (req, res) => {
   });
 };
 
+// @desc Get job counts per Indian state
+// @route GET /api/jobs/state-counts
+const getStateCounts = async (req, res) => {
+  try {
+    await seedDatabaseIfEmpty();
+
+    if (isDBConnected()) {
+      const counts = await Job.aggregate([
+        { $match: { status: 'Active' } },
+        { $group: { _id: '$state', count: { $sum: 1 } } }
+      ]);
+      const result = {};
+      counts.forEach(c => {
+        if (c._id) result[c._id] = c.count;
+      });
+      return res.json(result);
+    }
+
+    // In-memory calculation
+    const result = {};
+    memoryStore.jobs.filter(j => j.status === 'Active').forEach(j => {
+      const st = j.state || 'Other';
+      result[st] = (result[st] || 0) + 1;
+    });
+    return res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch state counts', error: err.message });
+  }
+};
+
 module.exports = {
   getJobs,
   getJobById,
   createJob,
   updateJob,
   deleteJob,
-  saveJobToggle
+  saveJobToggle,
+  getStateCounts
 };
