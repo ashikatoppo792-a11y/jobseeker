@@ -133,6 +133,16 @@ const Navbar = ({ onOpenAuth, onNavigate, currentPage, onOpenGoalModal }) => {
           >
             {t('browseAll')}
           </button>
+          <button
+            onClick={() => onNavigate('company-reviews')}
+            style={{
+              fontWeight: currentPage === 'company-reviews' ? 700 : 500,
+              color: currentPage === 'company-reviews' ? 'var(--primary)' : 'var(--text-main)',
+              fontSize: '0.95rem'
+            }}
+          >
+            Company Reviews
+          </button>
 
           {user?.role === 'seeker' && (
             <button

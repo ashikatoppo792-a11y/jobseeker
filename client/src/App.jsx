@@ -10,6 +10,7 @@ import JobSeekerDashboard from './pages/JobSeekerDashboard';
 import EmployerDashboard from './pages/EmployerDashboard';
 import AdminPanel from './pages/AdminPanel';
 import CompanyProfilePage from './pages/CompanyProfilePage';
+import CompanyReviewsPage from './pages/CompanyReviewsPage';
 import JobDetailsModal from './components/JobDetailsModal';
 import ApplyModal from './components/ApplyModal';
 import AuthModal from './components/AuthModal';
@@ -112,6 +113,13 @@ const AppContent = () => {
 
         {currentPage === 'admin-panel' && (
           <AdminPanel />
+        )}
+
+        {currentPage === 'company-reviews' && (
+          <CompanyReviewsPage
+            onNavigate={handleNavigate}
+            onSelectCompany={(comp) => handleNavigate('jobs', { keyword: comp.name })}
+          />
         )}
 
         {currentPage === 'company-profile' && (
