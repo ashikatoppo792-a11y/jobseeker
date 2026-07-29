@@ -110,7 +110,7 @@ const Navbar = ({ onOpenAuth, onNavigate, currentPage, onOpenGoalModal }) => {
               gap: '0.35rem'
             }}
           >
-            <HelpCircle size={15} /> Goal: Job or Hire?
+            <HelpCircle size={15} /> {t('goalBtn', 'Goal: Job or Hire?')}
           </button>
 
           <button
@@ -141,7 +141,7 @@ const Navbar = ({ onOpenAuth, onNavigate, currentPage, onOpenGoalModal }) => {
               fontSize: '0.95rem'
             }}
           >
-            Company Reviews
+            {t('companyReviews', 'Company Reviews')}
           </button>
 
           {user?.role === 'seeker' && (

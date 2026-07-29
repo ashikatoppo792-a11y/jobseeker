@@ -1,7 +1,10 @@
 import React from 'react';
 import { X, Briefcase, Building2, UserCheck, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const GoalSelectionModal = ({ isOpen, onClose, onSelectGoal }) => {
+  const { t } = useLanguage();
+
   if (!isOpen) return null;
 
   const handleSelect = (goal) => {
@@ -65,7 +68,7 @@ const GoalSelectionModal = ({ isOpen, onClose, onSelectGoal }) => {
           marginBottom: '2rem',
           fontFamily: 'var(--font-heading)'
         }}>
-          What do you want to do?
+          {t('whatIsYourGoal', 'What do you want to do?')}
         </h2>
 
         {/* 2 Choice Cards Container */}
@@ -114,7 +117,7 @@ const GoalSelectionModal = ({ isOpen, onClose, onSelectGoal }) => {
                   lineHeight: 1.2,
                   margin: 0
                 }}>
-                  I want a job
+                  {t('iWantJob', 'I want a job')}
                 </h3>
               </div>
 
@@ -135,15 +138,15 @@ const GoalSelectionModal = ({ isOpen, onClose, onSelectGoal }) => {
               />
             </div>
 
-            {/* Hindi Subtext */}
+            {/* Subtext */}
             <span style={{
               marginTop: '1rem',
               fontSize: '1.15rem',
               fontWeight: 700,
-              color: '#1E40AF',
+              color: 'var(--primary)',
               fontFamily: 'sans-serif'
             }}>
-              मुझे नौकरी चाहिए
+              {t('iWantJobDesc', 'Find local & pan-India jobs')}
             </span>
           </div>
 
@@ -186,7 +189,7 @@ const GoalSelectionModal = ({ isOpen, onClose, onSelectGoal }) => {
                   lineHeight: 1.2,
                   margin: 0
                 }}>
-                  I want to hire people
+                  {t('iWantHire', 'I want to hire people')}
                 </h3>
               </div>
 
@@ -207,15 +210,15 @@ const GoalSelectionModal = ({ isOpen, onClose, onSelectGoal }) => {
               />
             </div>
 
-            {/* Hindi Subtext */}
+            {/* Subtext */}
             <span style={{
               marginTop: '1rem',
               fontSize: '1.15rem',
               fontWeight: 700,
-              color: '#1D4ED8',
+              color: 'var(--primary)',
               fontFamily: 'sans-serif'
             }}>
-              मुझे लोग काम पे रखने है
+              {t('iWantHireDesc', 'Post job openings, manage candidates')}
             </span>
           </div>
         </div>

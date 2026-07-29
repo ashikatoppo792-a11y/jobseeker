@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { STATE_DISTRICT_DATA, ALL_INDIAN_STATES } from '../utils/indiaDistricts';
 import { getCurrentLocation } from '../utils/geolocation';
+import { useLanguage } from '../context/LanguageContext';
 import { X, MapPin, Search, ChevronRight, Check, Compass, Building2, Crosshair, Loader2 } from 'lucide-react';
 
 const StateDistrictModal = ({ isOpen, onClose, onSelectLocation }) => {
+  const { t } = useLanguage();
+
   if (!isOpen) return null;
 
   const [activeState, setActiveState] = useState('Karnataka');
@@ -70,7 +73,7 @@ const StateDistrictModal = ({ isOpen, onClose, onSelectLocation }) => {
               <Compass size={14} /> Location Explorer
             </div>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>
-              Select State & District in India
+              {t('selectStateUT', 'Select State & District in India')}
             </h2>
           </div>
 

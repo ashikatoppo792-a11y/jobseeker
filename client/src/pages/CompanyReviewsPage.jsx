@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Star, Building2, MapPin, Users, Briefcase, IndianRupee, MessageSquare, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const POPULAR_COMPANIES_DATA = [
   {
@@ -101,6 +102,7 @@ const POPULAR_COMPANIES_DATA = [
 ];
 
 const CompanyReviewsPage = ({ onNavigate, onSelectCompany }) => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('All');
 
@@ -124,14 +126,14 @@ const CompanyReviewsPage = ({ onNavigate, onSelectCompany }) => {
             marginBottom: '0.75rem',
             color: 'var(--text-main)'
           }}>
-            Find great places to work
+            {t('findGreatPlaces', 'Find great places to work')}
           </h1>
           <p style={{
             fontSize: '1.15rem',
             color: 'var(--text-muted)',
             marginBottom: '2rem'
           }}>
-            Get access to millions of company reviews, ratings, salaries, and Q&A
+            {t('getUnfilteredApp', 'Get access to millions of company reviews, ratings, salaries, and Q&A')}
           </p>
 
           {/* Search Box */}
@@ -158,7 +160,7 @@ const CompanyReviewsPage = ({ onNavigate, onSelectCompany }) => {
               <Search size={22} color="var(--primary)" />
               <input
                 type="text"
-                placeholder="Company name or job title"
+                placeholder={t('searchCompanyPlaceholder', 'Company name or job title')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -177,7 +179,7 @@ const CompanyReviewsPage = ({ onNavigate, onSelectCompany }) => {
               className="btn btn-primary btn-lg"
               style={{ padding: '0.75rem 2rem', fontWeight: 700, borderRadius: 'var(--radius-md)' }}
             >
-              Find Companies
+              {t('searchBtn', 'Find Companies')}
             </button>
           </form>
         </div>
@@ -268,7 +270,7 @@ const CompanyReviewsPage = ({ onNavigate, onSelectCompany }) => {
                         {company.rating}
                       </span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>
-                        {company.reviewsCount.toLocaleString()} reviews
+                        {company.reviewsCount.toLocaleString()} {t('reviews', 'reviews')}
                       </span>
                     </div>
                   </div>
@@ -300,21 +302,21 @@ const CompanyReviewsPage = ({ onNavigate, onSelectCompany }) => {
                   onClick={() => onNavigate('jobs', { keyword: company.name })}
                   style={{ color: 'var(--text-muted)', background: 'none', border: 'none' }}
                 >
-                  Salaries
+                  {t('salaries', 'Salaries')}
                 </button>
                 <span style={{ color: 'var(--border-color)' }}>|</span>
                 <button
                   onClick={() => onNavigate('jobs', { keyword: company.name })}
                   style={{ color: 'var(--text-muted)', background: 'none', border: 'none' }}
                 >
-                  Questions
+                  {t('questions', 'Questions')}
                 </button>
                 <span style={{ color: 'var(--border-color)' }}>|</span>
                 <button
                   onClick={() => onNavigate('jobs', { keyword: company.name })}
                   style={{ color: 'var(--primary)', fontWeight: 700, background: 'none', border: 'none' }}
                 >
-                  Open jobs ({company.openJobsCount})
+                  {t('openJobs', 'Open jobs')} ({company.openJobsCount})
                 </button>
               </div>
             </div>

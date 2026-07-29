@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Building2,
   MapPin,
@@ -31,6 +32,7 @@ export const formatIndianSalary = (job) => {
 
 const JobCard = ({ job, onSelect, onApply, isSelected }) => {
   const { savedJobs, toggleSaveJob } = useAuth();
+  const { t } = useLanguage();
   const isSaved = savedJobs.includes(job._id);
 
   const isGovt = job.sector === 'Government';
@@ -83,12 +85,12 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
                 className={`badge ${isGovt ? 'badge-green' : 'badge-blue'}`}
                 style={{ fontSize: '0.7rem', fontWeight: 800 }}
               >
-                {isGovt ? <><Landmark size={12} /> Govt / Sarkari</> : <><Building2 size={12} /> Private</>}
+                {isGovt ? <><Landmark size={12} /> {t('govtBadge', 'Govt / Sarkari')}</> : <><Building2 size={12} /> Private</>}
               </span>
 
               {job.featured && (
                 <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>
-                  <Sparkles size={12} /> Featured
+                  <Sparkles size={12} /> {t('featured', 'Featured')}
                 </span>
               )}
             </div>
@@ -118,7 +120,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
             backgroundColor: isSaved ? 'var(--primary-light)' : 'transparent',
             transition: 'all var(--transition-fast)'
           }}
-          title={isSaved ? 'Remove from Saved' : 'Save Job'}
+          title={isSaved ? t('saved', 'Saved') : t('saveJob', 'Save Job')}
         >
           <Bookmark size={19} fill={isSaved ? 'var(--primary)' : 'none'} />
         </button>
@@ -152,7 +154,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
 
         {job.lastDateToApply && (
           <span className="badge badge-amber" style={{ fontWeight: 700 }}>
-            <Calendar size={12} /> Apply by {new Date(job.lastDateToApply).toLocaleDateString()}
+            <Calendar size={12} /> {t('applyBy', 'Apply by')} {new Date(job.lastDateToApply).toLocaleDateString()}
           </span>
         )}
       </div>
@@ -182,7 +184,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
         color: 'var(--text-muted)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <Clock size={14} /> Posted {new Date(job.createdAt).toLocaleDateString()}
+          <Clock size={14} /> {t('posted', 'Posted')} {new Date(job.createdAt).toLocaleDateString()}
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -193,7 +195,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
             }}
             className="btn btn-outline btn-sm"
           >
-            <Eye size={14} /> Quick View
+            <Eye size={14} /> {t('quickView', 'Quick View')}
           </button>
           <button
             onClick={(e) => {
@@ -202,7 +204,7 @@ const JobCard = ({ job, onSelect, onApply, isSelected }) => {
             }}
             className={`btn ${isGovt ? 'btn-secondary' : 'btn-primary'} btn-sm`}
           >
-            {isGovt ? 'Official Apply' : 'Apply Now'}
+            {isGovt ? t('officialApply', 'Official Apply') : t('applyNow', 'Apply Now')}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import JobDetailsModal from '../components/JobDetailsModal';
 import StateDistrictModal from '../components/StateDistrictModal';
 import { apiFetch } from '../utils/api';
 import { STATE_DISTRICT_DATA } from '../utils/indiaDistricts';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Search,
   MapPin,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 
 const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile }) => {
+  const { t } = useLanguage();
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -229,54 +231,54 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
           <aside className="card" style={{ padding: '1.5rem', height: 'fit-content' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <SlidersHorizontal size={18} color="var(--primary)" /> Sector & Filters
+                <SlidersHorizontal size={18} color="var(--primary)" /> {t('sectorFilters', 'Sector & Filters')}
               </h3>
               <button onClick={handleResetFilters} style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <RotateCcw size={12} /> Reset
+                <RotateCcw size={12} /> {t('resetFilters', 'Reset')}
               </button>
             </div>
 
             {/* Sector Selector */}
             <div style={{ marginBottom: '1.5rem' }}>
-              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>Job Sector</label>
+              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>{t('jobSector', 'Job Sector')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: sector === 'All' ? 700 : 500 }}>
                   <input type="radio" name="sectorRadio" checked={sector === 'All'} onChange={() => setSector('All')} />
-                  All Job Sectors
+                  {t('allSectors', 'All Job Sectors')}
                 </label>
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#10B981', fontWeight: sector === 'Government' ? 700 : 500 }}>
                   <input type="radio" name="sectorRadio" checked={sector === 'Government'} onChange={() => setSector('Government')} />
-                  🏛️ Govt / Sarkari Naukri & PSUs
+                  🏛️ {t('govtSarkari', 'Govt / Sarkari Naukri & PSUs')}
                 </label>
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--primary)', fontWeight: sector === 'Private' ? 700 : 500 }}>
                   <input type="radio" name="sectorRadio" checked={sector === 'Private'} onChange={() => setSector('Private')} />
-                  🏢 Private Company Openings
+                  🏢 {t('privateCompany', 'Private Company Openings')}
                 </label>
               </div>
             </div>
 
             {/* Pay Format Selection (Thousands vs Lakhs) */}
             <div style={{ marginBottom: '1.5rem' }}>
-              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>Salary Range Type</label>
+              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>{t('salaryRangeType', 'Salary Range Type')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                   <input type="radio" name="payType" checked={payType === 'all'} onChange={() => setPayType('all')} />
-                  All Pay Ranges (Thousands & Lakhs)
+                  {t('allPayRanges', 'All Pay Ranges (Thousands & Lakhs)')}
                 </label>
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                   <input type="radio" name="payType" checked={payType === 'thousands'} onChange={() => setPayType('thousands')} />
-                  Thousands / Month (₹15k - ₹50k /mo)
+                  {t('thousandsPerMonth', 'Thousands / Month (₹15k - ₹50k /mo)')}
                 </label>
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                   <input type="radio" name="payType" checked={payType === 'lakhs'} onChange={() => setPayType('lakhs')} />
-                  Lakhs Per Annum (₹6 - ₹30+ LPA)
+                  {t('lakhsPerAnnum', 'Lakhs Per Annum (₹6 - ₹30+ LPA)')}
                 </label>
               </div>
             </div>
 
             {/* State Selector */}
             <div style={{ marginBottom: '1.25rem' }}>
-              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>Select State / UT</label>
+              <label className="input-label" style={{ marginBottom: '0.4rem', display: 'block' }}>{t('selectStateUT', 'Select State / UT')}</label>
               <select
                 value={selectedState}
                 onChange={(e) => {
@@ -286,7 +288,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
                 className="input-control"
                 style={{ fontSize: '0.875rem', fontWeight: 600 }}
               >
-                <option value="All States & UTs">All States & UTs</option>
+                <option value="All States & UTs">{t('allStatesUTs', 'All States & UTs')}</option>
                 <option value="Pan India (Remote)">Pan India (Remote)</option>
                 {states.map((st) => (
                   <option key={st} value={st}>{st}</option>
@@ -314,7 +316,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
 
             {/* Work Mode */}
             <div style={{ marginBottom: '1.5rem' }}>
-              <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Work Location Mode</label>
+              <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>{t('workLocationMode', 'Work Location Mode')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {['', 'On-site', 'Remote', 'Hybrid'].map((mode) => (
                   <label key={mode} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
@@ -324,7 +326,7 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
                       checked={workMode === mode}
                       onChange={() => setWorkMode(mode)}
                     />
-                    {mode || 'Any Mode'}
+                    {mode ? (mode === 'On-site' ? t('onSite', 'On-site') : mode === 'Remote' ? t('workFromHome', 'Work from Home (Remote)') : t('hybrid', 'Hybrid')) : t('anyMode', 'Any Mode')}
                   </label>
                 ))}
               </div>
@@ -379,24 +381,24 @@ const JobListingsPage = ({ initialFilters = {}, onApplyJob, onOpenCompanyProfile
             }}>
               <div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-                  {totalCount} {totalCount === 1 ? 'Job' : 'Jobs'} Found {sector !== 'All' ? `(${sector} Sector)` : ''}
+                  {totalCount} {t('jobsFound', 'Jobs Found')} {sector !== 'All' ? `(${sector})` : ''}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Showing open positions in {selectedDistrict ? `${selectedDistrict}, ${selectedState}` : (selectedState !== 'All States & UTs' ? selectedState : 'Pan India')}
+                  {t('showingOpenPositions', 'Showing open positions in')} {selectedDistrict ? `${selectedDistrict}, ${selectedState}` : (selectedState !== 'All States & UTs' ? selectedState : 'Pan India')}
                 </p>
               </div>
 
               {/* Sort By Dropdown */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600 }}>Sort By:</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t('sortBy', 'Sort By:')}</span>
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                   className="input-control"
                   style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.875rem' }}
                 >
-                  <option value="newest">Most Recent</option>
-                  <option value="salary-high">Highest Pay</option>
+                  <option value="newest">{t('mostRecent', 'Most Recent')}</option>
+                  <option value="salary-high">{t('highestSalary', 'Highest Pay')}</option>
                   <option value="popular">Most Viewed</option>
                 </select>
               </div>
