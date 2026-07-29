@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -13,6 +13,7 @@ import CompanyProfilePage from './pages/CompanyProfilePage';
 import JobDetailsModal from './components/JobDetailsModal';
 import ApplyModal from './components/ApplyModal';
 import AuthModal from './components/AuthModal';
+import GoalSelectionModal from './components/GoalSelectionModal';
 import AiAssistantWidget from './components/AiAssistantWidget';
 
 const AppContent = () => {
@@ -24,7 +25,19 @@ const AppContent = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [applyJob, setApplyJob] = useState(null);
   const [authModal, setAuthModal] = useState({ open: false, mode: 'login' });
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
   const [searchFilters, setSearchFilters] = useState({});
+
+  // Auto trigger Goal Modal on first visit if not logged in
+  useEffect(() => {
+    const hasVisited = sessionStorage.getItem('jobseeker_goal_selected');
+    if (!hasVisited && !user) {
+      const timer = setTimeout(() => {
+        setGoalModalOpen(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   const handleNavigate = (page, filters = {}) => {
     setCurrentPage(page);
@@ -45,6 +58,19 @@ const AppContent = () => {
     setApplyJob(job);
   };
 
+  const handleSelectGoal = (goal) => {
+    sessionStorage.setItem('jobseeker_goal_selected', goal);
+    if (goal === 'seeker') {
+      handleNavigate('jobs');
+    } else if (goal === 'employer') {
+      if (user?.role === 'employer') {
+        handleNavigate('employer-dashboard');
+      } else {
+        setAuthModal({ open: true, mode: 'register' });
+      }
+    }
+  };
+
   return (
     <div className="app-container">
       {/* Navbar */}
@@ -52,6 +78,7 @@ const AppContent = () => {
         currentPage={currentPage}
         onNavigate={handleNavigate}
         onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenGoalModal={() => setGoalModalOpen(true)}
       />
 
       {/* Main Pages router */}
@@ -103,7 +130,14 @@ const AppContent = () => {
       {/* Floating AI Assistant Widget with Mood Personalities */}
       <AiAssistantWidget />
 
-      {/* Modals */}
+      {/* Goal Selection Modal ("What do you want to do?") */}
+      <GoalSelectionModal
+        isOpen={goalModalOpen}
+        onClose={() => setGoalModalOpen(false)}
+        onSelectGoal={handleSelectGoal}
+      />
+
+      {/* Job Details Modal */}
       {selectedJob && (
         <JobDetailsModal
           job={selectedJob}
@@ -113,6 +147,7 @@ const AppContent = () => {
         />
       )}
 
+      {/* Application Submission Modal */}
       {applyJob && (
         <ApplyModal
           job={applyJob}
@@ -125,6 +160,7 @@ const AppContent = () => {
         />
       )}
 
+      {/* Auth Login/Register Modal */}
       {authModal.open && (
         <AuthModal
           initialMode={authModal.mode}

@@ -15,10 +15,11 @@ import {
   LogOut,
   Menu,
   X,
-  Bell
+  Bell,
+  HelpCircle
 } from 'lucide-react';
 
-const Navbar = ({ onOpenAuth, onNavigate, currentPage }) => {
+const Navbar = ({ onOpenAuth, onNavigate, currentPage, onOpenGoalModal }) => {
   const { user, logout, savedJobs } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
@@ -91,8 +92,27 @@ const Navbar = ({ onOpenAuth, onNavigate, currentPage }) => {
         <nav style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '1.75rem'
+          gap: '1.5rem'
         }} className="desktop-nav">
+          {/* WorkIndia-style Goal Switch Button */}
+          <button
+            onClick={onOpenGoalModal}
+            className="btn btn-secondary btn-sm"
+            style={{
+              padding: '0.45rem 0.85rem',
+              fontWeight: 700,
+              fontSize: '0.825rem',
+              borderRadius: 'var(--radius-full)',
+              color: 'var(--primary)',
+              backgroundColor: 'var(--primary-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
+          >
+            <HelpCircle size={15} /> Goal: Job or Hire?
+          </button>
+
           <button
             onClick={() => onNavigate('home')}
             style={{
